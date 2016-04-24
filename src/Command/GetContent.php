@@ -69,14 +69,26 @@ class GetContent implements SelfHandling
         $namespace = 'anomaly.extension.local_documentation';
 
         /* @var Addon $addon */
-        $addon = $addons->get($configuration->value($namespace . '::addon', $this->project->getSlug()));
+        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $this->project->getSlug()))) {
 
-        $path = 'docs/' . $config->get('app.locale') . '/' . $this->page . '.md';
+            $path = 'docs/' . $config->get('app.locale') . '/' . $this->page . '.md';
 
-        if (!file_exists($addon->getPath($path))) {
-            $path = 'docs/' . $config->get('app.fallback_locale') . '/' . $this->page . '.md';
+            if (!file_exists($addon->getPath($path))) {
+                $path = 'docs/' . $config->get('app.fallback_locale') . '/' . $this->page . '.md';
+            }
+
+            $path = $addon->getPath($path);
         }
 
-        return file_get_contents($addon->getPath($path));
+        if (!isset($path)) {
+
+            $path = base_path($key . '/docs/' . $config->get('app.locale') . '/' . $this->page . '.md');
+
+            if (!file_exists($path)) {
+                $path = base_path($key . '/docs/' . $config->get('app.fallback_locale') . '/' . $this->page . '.md');
+            }
+        }
+
+        return file_get_contents($path);
     }
 }

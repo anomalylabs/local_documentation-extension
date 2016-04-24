@@ -60,8 +60,14 @@ class GetStructure implements SelfHandling
         $namespace = 'anomaly.extension.local_documentation';
 
         /* @var Addon $addon */
-        $addon = $addons->get($configuration->value($namespace . '::addon', $this->project->getSlug()));
+        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $this->project->getSlug()))) {
+            $path = $addon->getPath('docs/structure.json');
+        }
 
-        return json_decode(file_get_contents($addon->getPath('docs/structure.json')), true);
+        if (!isset($path)) {
+            $path = base_path($key . '/docs/structure.json');
+        }
+
+        return json_decode(file_get_contents($path), true);
     }
 }

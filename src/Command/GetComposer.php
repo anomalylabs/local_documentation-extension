@@ -60,8 +60,14 @@ class GetComposer implements SelfHandling
         $namespace = 'anomaly.extension.local_documentation';
 
         /* @var Addon $addon */
-        $addon = $addons->get($configuration->value($namespace . '::addon', $this->project->getSlug()));
+        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $this->project->getSlug()))) {
+            $path = $addon->getPath('composer.json');
+        }
 
-        return json_decode(file_get_contents($addon->getPath('composer.json')));
+        if (!isset($path)) {
+            $path = base_path($key . '/composer.json');
+        }
+
+        return json_decode(file_get_contents($path));
     }
 }
