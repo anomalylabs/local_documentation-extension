@@ -1,33 +1,29 @@
 <?php namespace Anomaly\LocalDocumentationExtension\Command;
 
 use Anomaly\ConfigurationModule\Configuration\Contract\ConfigurationRepositoryInterface;
-use Anomaly\DocumentationModule\Project\Contract\ProjectInterface;
+use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
 use Anomaly\Streams\Platform\Addon\Addon;
 use Anomaly\Streams\Platform\Addon\AddonCollection;
-use Illuminate\Contracts\Bus\SelfHandling;
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Local\Client;
 
 /**
  * Class GetComposer
  *
- * @link          http://pyrocms.com/
- * @author        PyroCMS, Inc. <support@pyrocms.com>
- * @author        Ryan Thompson <ryan@pyrocms.com>
- * @package       Anomaly\LocalDocumentationExtension\Command
+ * @link   http://pyrocms.com/
+ * @author PyroCMS, Inc. <support@pyrocms.com>
+ * @author Ryan Thompson <ryan@pyrocms.com>
  */
-class GetComposer implements SelfHandling
+class GetComposer
 {
 
     use DispatchesJobs;
 
     /**
-     * The project instance.
+     * The documentation extension.
      *
-     * @var ProjectInterface
+     * @var DocumentationExtension
      */
-    protected $project;
+    protected $extension;
 
     /**
      * The project reference.
@@ -39,12 +35,12 @@ class GetComposer implements SelfHandling
     /**
      * Create a new GetComposer instance.
      *
-     * @param ProjectInterface $project
-     * @param string           $reference
+     * @param DocumentationExtension $extension
+     * @param string                 $reference
      */
-    public function __construct(ProjectInterface $project, $reference)
+    public function __construct(DocumentationExtension $extension, $reference)
     {
-        $this->project   = $project;
+        $this->extension = $extension;
         $this->reference = $reference;
     }
 
@@ -57,10 +53,12 @@ class GetComposer implements SelfHandling
      */
     public function handle(ConfigurationRepositoryInterface $configuration, AddonCollection $addons)
     {
+        $project = $this->extension->getProject();
+
         $namespace = 'anomaly.extension.local_documentation';
 
         /* @var Addon $addon */
-        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $this->project->getSlug()))) {
+        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $project->getSlug()))) {
             $path = $addon->getPath('composer.json');
         }
 

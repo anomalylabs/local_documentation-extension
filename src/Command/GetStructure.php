@@ -1,33 +1,28 @@
 <?php namespace Anomaly\LocalDocumentationExtension\Command;
 
 use Anomaly\ConfigurationModule\Configuration\Contract\ConfigurationRepositoryInterface;
-use Anomaly\DocumentationModule\Project\Contract\ProjectInterface;
-use Anomaly\Streams\Platform\Addon\Addon;
-use Anomaly\Streams\Platform\Addon\AddonCollection;
-use Illuminate\Contracts\Bus\SelfHandling;
-use Illuminate\Contracts\Config\Repository;
+use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Local\Client;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class GetStructure
  *
- * @link          http://pyrocms.com/
- * @author        PyroCMS, Inc. <support@pyrocms.com>
- * @author        Ryan Thompson <ryan@pyrocms.com>
- * @package       Anomaly\LocalDocumentationExtension\Command
+ * @link   http://pyrocms.com/
+ * @author PyroCMS, Inc. <support@pyrocms.com>
+ * @author Ryan Thompson <ryan@pyrocms.com>
  */
-class GetStructure implements SelfHandling
+class GetStructure
 {
 
     use DispatchesJobs;
 
     /**
-     * The project instance.
+     * The documentation extension.
      *
-     * @var ProjectInterface
+     * @var DocumentationExtension
      */
-    protected $project;
+    protected $extension;
 
     /**
      * The project reference.
@@ -39,12 +34,12 @@ class GetStructure implements SelfHandling
     /**
      * Create a new GetStructure instance.
      *
-     * @param ProjectInterface $project
-     * @param string           $reference
+     * @param DocumentationExtension $extension
+     * @param string                 $reference
      */
-    public function __construct(ProjectInterface $project, $reference)
+    public function __construct(DocumentationExtension $extension, $reference)
     {
-        $this->project   = $project;
+        $this->extension = $extension;
         $this->reference = $reference;
     }
 
@@ -52,22 +47,15 @@ class GetStructure implements SelfHandling
      * Handle the command.
      *
      * @param ConfigurationRepositoryInterface $configuration
-     * @param AddonCollection                  $addons
-     * @return \stdClass
+     * @return array
      */
-    public function handle(ConfigurationRepositoryInterface $configuration, AddonCollection $addons)
+    public function handle(ConfigurationRepositoryInterface $configuration)
     {
-        $namespace = 'anomaly.extension.local_documentation';
+        $path = $configuration->value(
+                $this->extension->getNamespace('path'),
+                $this->extension->getProjectId()
+            ) . DIRECTORY_SEPARATOR;
 
-        /* @var Addon $addon */
-        if ($addon = $addons->get($key = $configuration->value($namespace . '::addon', $this->project->getSlug()))) {
-            $path = $addon->getPath('docs/structure.json');
-        }
-
-        if (!isset($path)) {
-            $path = base_path($key . '/docs/structure.json');
-        }
-
-        return json_decode(file_get_contents($path), true);
+        return (new Yaml())->parse(file_get_contents(base_path($path . 'structure.yaml')));
     }
 }

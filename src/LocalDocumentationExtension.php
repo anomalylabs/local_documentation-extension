@@ -1,18 +1,17 @@
 <?php namespace Anomaly\LocalDocumentationExtension;
 
+use Anomaly\ConfigurationModule\Configuration\Form\ConfigurationFormBuilder;
 use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
-use Anomaly\DocumentationModule\Project\Contract\ProjectInterface;
 use Anomaly\LocalDocumentationExtension\Command\GetComposer;
-use Anomaly\LocalDocumentationExtension\Command\GetContent;
+use Anomaly\LocalDocumentationExtension\Command\GetPages;
 use Anomaly\LocalDocumentationExtension\Command\GetStructure;
 
 /**
  * Class LocalDocumentationExtension
  *
- * @link          http://pyrocms.com/
- * @author        PyroCMS, Inc. <support@pyrocms.com>
- * @author        Ryan Thompson <ryan@pyrocms.com>
- * @package       Anomaly\LocalDocumentationExtension
+ * @link   http://pyrocms.com/
+ * @author PyroCMS, Inc. <support@pyrocms.com>
+ * @author Ryan Thompson <ryan@pyrocms.com>
  */
 class LocalDocumentationExtension extends DocumentationExtension
 {
@@ -26,39 +25,46 @@ class LocalDocumentationExtension extends DocumentationExtension
     protected $provides = 'anomaly.module.documentation::documentation.local';
 
     /**
-     * Return the documentation structure object.
+     * Return the documentation structure.
      *
-     * @param ProjectInterface $project
-     * @param                  $reference
+     * @param $reference
      * @return array
      */
-    public function structure(ProjectInterface $project, $reference)
+    public function structure($reference)
     {
-        return $this->dispatch(new GetStructure($project, $reference));
+        return $this->dispatch(new GetStructure($this, $reference));
+    }
+
+    /**
+     * Return the documentation pages.
+     *
+     * @param $reference
+     * @return array
+     */
+    public function pages($reference)
+    {
+        return $this->dispatch(new GetPages($this, $reference));
     }
 
     /**
      * Return the composer json object.
      *
-     * @param ProjectInterface $project
-     * @param                  $reference
+     * @param $reference
      * @return \stdClass
      */
-    public function composer(ProjectInterface $project, $reference)
+    public function composer($reference)
     {
-        return $this->dispatch(new GetComposer($project, $reference));
+        return $this->dispatch(new GetComposer($this, $reference));
     }
 
     /**
-     * Return the page content for a project.
+     * Validate the configuration.
      *
-     * @param ProjectInterface $project
-     * @param                  $reference
-     * @param                  $page
-     * @return string
+     * @param ConfigurationFormBuilder $builder
+     * @return bool
      */
-    public function content(ProjectInterface $project, $reference, $page)
+    public function validate(ConfigurationFormBuilder $builder)
     {
-        return $this->dispatch(new GetContent($project, $reference, $page));
+        throw new \Exception('Implement VALIDATE method');
     }
 }
