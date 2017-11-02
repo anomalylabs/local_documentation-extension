@@ -86,7 +86,7 @@ class GetPage
         $file = $files->get($path . DIRECTORY_SEPARATOR . $this->path . '.md');
 
         $data    = $parser->attributes($file);
-        $content = $parser->attributes($file);
+        $content = $parser->content($file);
 
         return [
             'title'            => array_pull($data, 'title'),
