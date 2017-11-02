@@ -2,8 +2,8 @@
 
 use Anomaly\ConfigurationModule\Configuration\Contract\ConfigurationRepositoryInterface;
 use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class GetStructure
@@ -32,30 +32,90 @@ class GetStructure
     protected $reference;
 
     /**
+     * The locale to scan.
+     *
+     * @var array
+     */
+    protected $locale;
+
+    /**
+     * The loading path.
+     *
+     * @var array
+     */
+    protected $path;
+
+    /**
      * Create a new GetStructure instance.
      *
      * @param DocumentationExtension $extension
      * @param string                 $reference
+     * @param                        $locale
+     * @param array                  $path
      */
-    public function __construct(DocumentationExtension $extension, $reference)
+    public function __construct(DocumentationExtension $extension, $reference, $locale, $path = null)
     {
         $this->extension = $extension;
         $this->reference = $reference;
+        $this->locale    = $locale;
+        $this->path      = $path;
     }
 
     /**
      * Handle the command.
      *
      * @param ConfigurationRepositoryInterface $configuration
+     * @param Filesystem                       $files
      * @return array
      */
-    public function handle(ConfigurationRepositoryInterface $configuration)
+    public function handle(ConfigurationRepositoryInterface $configuration, Filesystem $files)
     {
-        $path = $configuration->value(
+
+        $pages = [];
+
+        $path = $prefix = $configuration->value(
                 $this->extension->getNamespace('path'),
                 $this->extension->getProjectId()
-            ) . DIRECTORY_SEPARATOR;
+            ) . DIRECTORY_SEPARATOR . $this->locale;
 
-        return (new Yaml())->parse(file_get_contents(base_path($path . 'structure.yaml')));
+        if (!is_dir(base_path($prefix))) {
+            return [];
+        }
+
+        if ($this->path) {
+            $path .= DIRECTORY_SEPARATOR . $this->path;
+        }
+
+        $path   = base_path($path);
+        $prefix = base_path($prefix);
+
+        $directories = $files->directories($path);
+        $files       = $files->files($path);
+
+        array_map(
+            function (\SplFileInfo $file) use ($prefix, &$pages) {
+                $pages[] = str_replace($prefix, '', $file->getPath())
+                    . DIRECTORY_SEPARATOR
+                    . basename($file->getFilename(), '.' . $file->getExtension());
+            },
+            $files
+        );
+
+        array_map(
+            function ($directory) use ($prefix, $path, &$pages) {
+
+                $path = ltrim(str_replace($prefix, '', $directory), DIRECTORY_SEPARATOR);
+
+                $pages = array_merge(
+                    $pages,
+                    $this->dispatch(
+                        new GetStructure($this->extension, $this->reference, $this->locale, $path)
+                    )
+                );
+            },
+            $directories
+        );
+
+        return $pages;
     }
 }

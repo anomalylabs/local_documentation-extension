@@ -3,6 +3,7 @@
 use Anomaly\ConfigurationModule\Configuration\Form\ConfigurationFormBuilder;
 use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
 use Anomaly\LocalDocumentationExtension\Command\GetComposer;
+use Anomaly\LocalDocumentationExtension\Command\GetPage;
 use Anomaly\LocalDocumentationExtension\Command\GetPages;
 use Anomaly\LocalDocumentationExtension\Command\GetStructure;
 
@@ -28,22 +29,23 @@ class LocalDocumentationExtension extends DocumentationExtension
      * Return the documentation structure.
      *
      * @param $reference
+     * @param $locale
      * @return array
      */
-    public function structure($reference)
+    public function structure($reference, $locale)
     {
-        return $this->dispatch(new GetStructure($this, $reference));
+        return $this->dispatch(new GetStructure($this, $reference, $locale));
     }
 
     /**
-     * Return the documentation pages.
+     * Return a documentation page.
      *
      * @param $reference
      * @return array
      */
-    public function pages($reference)
+    public function page($reference, $locale, $path)
     {
-        return $this->dispatch(new GetPages($this, $reference));
+        return $this->dispatch(new GetPage($this, $reference, $locale, $path));
     }
 
     /**

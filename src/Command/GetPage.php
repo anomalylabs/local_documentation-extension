@@ -7,13 +7,13 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 /**
- * Class GetPages
+ * Class GetPage
  *
  * @link   http://pyrocms.com/
  * @author PyroCMS, Inc. <support@pyrocms.com>
  * @author Ryan Thompson <ryan@pyrocms.com>
  */
-class GetPages
+class GetPage
 {
 
     use DispatchesJobs;
@@ -33,6 +33,13 @@ class GetPages
     protected $reference;
 
     /**
+     * The locale to scan.
+     *
+     * @var array
+     */
+    protected $locale;
+
+    /**
      * The loading path.
      *
      * @var array
@@ -40,16 +47,18 @@ class GetPages
     protected $path;
 
     /**
-     * Create a new GetPages instance.
+     * Create a new GetPage instance.
      *
      * @param DocumentationExtension $extension
      * @param string                 $reference
-     * @param array                  $path
+     * @param                        $locale
+     * @param                        $path
      */
-    public function __construct(DocumentationExtension $extension, $reference, $path = null)
+    public function __construct(DocumentationExtension $extension, $reference, $locale, $path)
     {
         $this->extension = $extension;
         $this->reference = $reference;
+        $this->locale    = $locale;
         $this->path      = $path;
     }
 
@@ -66,48 +75,26 @@ class GetPages
         DocumentationParser $parser,
         Filesystem $files
     ) {
-        $pages = [];
+        $path = $configuration->value(
+                $this->extension->getNamespace('path'),
+                $this->extension->getProjectId()
+            ) . DIRECTORY_SEPARATOR . $this->locale;
 
-        $path = $prefix = $configuration->value(
-            $this->extension->getNamespace('path'),
-            $this->extension->getProjectId()
-        );
 
-        if ($this->path) {
-            $path .= DIRECTORY_SEPARATOR . $this->path;
-        }
+        $path = base_path($path);
 
-        $path   = base_path($path);
-        $prefix = base_path($prefix);
+        $file = $files->get($path . DIRECTORY_SEPARATOR . $this->path . '.md');
 
-        $directories = $files->directories($path);
-        $files       = $files->files($path);
+        $data    = $parser->attributes($file);
+        $content = $parser->attributes($file);
 
-        array_map(
-            function ($directory) use ($prefix, $path, &$pages) {
-
-                $path = ltrim(str_replace($prefix, '', $directory), DIRECTORY_SEPARATOR);
-
-                $pages[basename($directory)] = $this->dispatch(
-                    new GetPages($this->extension, $this->reference, $path)
-                );
-            },
-            $directories
-        );
-
-        array_map(
-            function (\SplFileInfo $file) use ($parser, &$pages) {
-
-                $content = file_get_contents($file->getPathname());
-
-                $pages[$file->getBasename('.' . $file->getExtension())] = array_merge(
-                    $parser->attributes($content),
-                    ['content' => $parser->content($content)]
-                );
-            },
-            $files
-        );
-
-        return $pages;
+        return [
+            'title'            => array_pull($data, 'title'),
+            'meta_title'       => array_pull($data, 'meta_title'),
+            'meta_description' => array_pull($data, 'meta_description'),
+            'path'             => $parser->path($this->path, DIRECTORY_SEPARATOR),
+            'content'          => $content,
+            'data'             => $data,
+        ];
     }
 }
