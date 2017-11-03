@@ -3,6 +3,7 @@
 use Anomaly\ConfigurationModule\Configuration\Form\ConfigurationFormBuilder;
 use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
 use Anomaly\LocalDocumentationExtension\Command\GetComposer;
+use Anomaly\LocalDocumentationExtension\Command\GetLocales;
 use Anomaly\LocalDocumentationExtension\Command\GetPage;
 use Anomaly\LocalDocumentationExtension\Command\GetPages;
 use Anomaly\LocalDocumentationExtension\Command\GetStructure;
@@ -24,6 +25,17 @@ class LocalDocumentationExtension extends DocumentationExtension
      * @var null|string
      */
     protected $provides = 'anomaly.module.documentation::documentation.local';
+
+    /**
+     * Return the available locales.
+     *
+     * @param $reference
+     * @return array
+     */
+    public function locales($reference)
+    {
+        return $this->dispatch(new GetLocales($this, $reference));
+    }
 
     /**
      * Return the documentation structure.
