@@ -5,7 +5,6 @@ use Anomaly\DocumentationModule\Documentation\DocumentationExtension;
 use Anomaly\LocalDocumentationExtension\Command\GetComposer;
 use Anomaly\LocalDocumentationExtension\Command\GetLocales;
 use Anomaly\LocalDocumentationExtension\Command\GetPage;
-use Anomaly\LocalDocumentationExtension\Command\GetPages;
 use Anomaly\LocalDocumentationExtension\Command\GetStructure;
 
 /**
