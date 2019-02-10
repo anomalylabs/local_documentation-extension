@@ -50,7 +50,7 @@ class GetPage
      * Create a new GetPage instance.
      *
      * @param DocumentationExtension $extension
-     * @param string                 $reference
+     * @param string $reference
      * @param                        $locale
      * @param                        $path
      */
@@ -66,8 +66,8 @@ class GetPage
      * Handle the command.
      *
      * @param ConfigurationRepositoryInterface $configuration
-     * @param DocumentationParser              $parser
-     * @param Filesystem                       $files
+     * @param DocumentationParser $parser
+     * @param Filesystem $files
      * @return array
      */
     public function handle(
@@ -80,6 +80,11 @@ class GetPage
                 $this->extension->getProjectId()
             ) . DIRECTORY_SEPARATOR . $this->locale;
 
+        $segments = explode(DIRECTORY_SEPARATOR, ltrim($this->path, DIRECTORY_SEPARATOR));
+
+        $last = array_pop($segments);
+
+        $parts = explode('.', $last);
 
         $path = base_path($path);
 
@@ -93,6 +98,7 @@ class GetPage
             'meta_title'       => array_pull($data, 'meta_title'),
             'meta_description' => array_pull($data, 'meta_description'),
             'path'             => $parser->path($this->path, DIRECTORY_SEPARATOR),
+            'sort_order'       => (int)array_shift($parts),
             'content'          => $content,
             'data'             => $data,
         ];
