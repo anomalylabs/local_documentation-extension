@@ -34,5 +34,11 @@
             "Anomaly\\LocalDocumentationExtension\\": "src/"
         }
     },
-    
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Anomaly\\LocalDocumentationExtension\\LocalDocumentationExtensionServiceProvider"
+            ]
+        }
+    }
 }
